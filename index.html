@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>变声台 · RVC Voice Studio</title>
+<meta name="description" content="本地运行的 RVC 实时变声台：模型、设备、调校与耳机监听，一块屏幕完成。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23141413'/%3E%3Cpath d='M9 23V9h7.2a4.3 4.3 0 0 1 0 8.6H12' fill='none' stroke='%23D97757' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M17.5 17.6 23 23' fill='none' stroke='%23D97757' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.3 8.3 0 1 0 10.2 10.2Z"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.9.7c0 1.6-2.4 1.8-2.4 3.4"/><path d="M12 17.2v.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4.6V9h-4.4"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.4 7.4a2 2 0 0 1 2-2h3.2l1.8 2.2h8.2a2 2 0 0 1 2 2v7.6a2 2 0 0 1-2 2H5.4a2 2 0 0 1-2-2Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.2 13.8a3.6 3.6 0 0 0 5.1 0l2.4-2.4a3.6 3.6 0 0 0-5.1-5.1l-1.4 1.4"/><path d="M13.8 10.2a3.6 3.6 0 0 0-5.1 0l-2.4 2.4a3.6 3.6 0 0 0 5.1 5.1l1.4-1.4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.6 6.2c0-.8.9-1.3 1.6-.9l7.2 5a1.1 1.1 0 0 1 0 1.8l-7.2 5c-.7.4-1.6-.1-1.6-.9Z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.6"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3.2" width="6" height="10.6" rx="3"/><path d="M5.8 11.4a6.2 6.2 0 0 0 12.4 0M12 17.6v3.2"/></symbol>
+  <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4.4 14.6V12a7.6 7.6 0 0 1 15.2 0v2.6"/><rect x="2.8" y="14" width="4.2" height="6.4" rx="2.1"/><rect x="17" y="14" width="4.2" height="6.4" rx="2.1"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M6.8 9.4 12 14.6l5.2-5.2"/></symbol>
+</svg>
+
+<div class="demo-banner" id="demo-banner" hidden>
+  <span class="demo-dot"></span>
+  <span id="demo-text">静态预览模式 · 未连接本地服务，界面可操作但不会真的变声</span>
+  <a href="https://github.com/VIOLET50411/rvc-voice-studio#本地运行" class="demo-link" target="_blank" rel="noopener">本地运行方法</a>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M6.6 18.4V6.2h5.6a3.4 3.4 0 0 1 0 6.8H9.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M13.2 13.4 17.6 18.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </span>
+    <span class="brand-name">变声台</span>
+    <span class="brand-meta mono">RVC&nbsp;v2 · 0.4.0</span>
+  </div>
+  <div class="top-actions">
+    <span class="gpu-chip mono" id="gpu-chip" title="推理设备">检测中</span>
+    <span class="state-pill" id="state-pill"><i></i><span id="state-text">未启动</span></span>
+    <button class="icon-btn" id="theme-btn" aria-label="切换深浅色" title="切换深浅色">
+      <svg class="ico-sun"><use href="#i-sun"/></svg>
+      <svg class="ico-moon"><use href="#i-moon"/></svg>
+    </button>
+    <button class="icon-btn" id="help-btn" aria-label="帮助" title="接线与排错">
+      <svg><use href="#i-help"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="page" id="page">
+  <div class="workspace">
+
+    <div class="column-main">
+
+      <section class="card" aria-labelledby="t-model">
+        <div class="card-head">
+          <h2 id="t-model">音色模型</h2>
+          <div class="head-tools">
+            <button class="text-btn" id="refresh-models"><svg><use href="#i-refresh"/></svg>刷新</button>
+            <button class="text-btn" id="open-models"><svg><use href="#i-folder"/></svg>目录</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="field">
+            <span>模型</span>
+            <select id="model-select"></select>
+          </label>
+          <label class="field">
+            <span>检索索引</span>
+            <select id="index-select"></select>
+          </label>
+        </div>
+        <div class="badge-row" id="model-badges"></div>
+      </section>
+
+      <section class="card" aria-labelledby="t-preset">
+        <div class="card-head">
+          <h2 id="t-preset">场景预设</h2>
+          <span class="head-note serif">套用后再微调，改动即时写入</span>
+        </div>
+        <div class="chips" id="preset-chips"></div>
+      </section>
+
+      <section class="card" aria-labelledby="t-device">
+        <div class="card-head">
+          <h2 id="t-device">音频设备</h2>
+          <button class="text-btn" id="auto-vm"><svg><use href="#i-link"/></svg>匹配虚拟声卡</button>
+        </div>
+        <div class="field-row three">
+          <label class="field">
+            <span>设备类型</span>
+            <select id="hostapi-select"></select>
+          </label>
+          <label class="field">
+            <span>输入 · 麦克风</span>
+            <select id="input-select"></select>
+          </label>
+          <label class="field">
+            <span>输出 · 变声结果</span>
+            <select id="output-select"></select>
+          </label>
+        </div>
+        <div class="inline-row">
+          <div class="segmented" id="sr-seg" role="group" aria-label="采样率">
+            <button data-val="device" class="on">设备采样率</button>
+            <button data-val="model">模型采样率</button>
+          </div>
+          <span class="hint serif" id="sr-note">48 kHz 设备采样率与虚拟声卡兼容性最好</span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="t-tune">
+        <div class="card-head">
+          <h2 id="t-tune">声线调校</h2>
+          <span class="head-note serif">拖动即时生效</span>
+        </div>
+        <div class="sliders" id="sliders-hot">
+          <div class="slider" data-key="pitch" data-min="-16" data-max="16" data-step="1">
+            <div class="slider-top"><label>音调</label><output class="mono">0</output></div>
+            <input type="range" min="-16" max="16" step="1" value="12">
+            <p class="tip serif">男声转女声从 +12 起步；本音偏高用 +10～+11，宁低勿高。</p>
+          </div>
+          <div class="slider" data-key="formant" data-min="-2" data-max="2" data-step="0.01">
+            <div class="slider-top"><label>声线粗细</label><output class="mono">0.00</output></div>
+            <input type="range" min="-2" max="2" step="0.01" value="0.12">
+            <p class="tip serif">御姐音保持 0～0.2；超过 0.5 会偏幼。</p>
+          </div>
+          <div class="slider" data-key="index_rate" data-min="0" data-max="1" data-step="0.01">
+            <div class="slider-top"><label>检索占比</label><output class="mono">0.00</output></div>
+            <input type="range" min="0" max="1" step="0.01" value="0.6">
+            <p class="tip serif">越高越贴近模型音色；0.6～0.75 自然，1.0 会带底噪。</p>
+          </div>
+          <div class="slider" data-key="rms_mix_rate" data-min="0" data-max="1" data-step="0.01">
+            <div class="slider-top"><label>响度跟随</label><output class="mono">0.00</output></div>
+            <input type="range" min="0" max="1" step="0.01" value="0.35">
+            <p class="tip serif">0 表示音量稳定，1 完全跟随说话起伏；0.3～0.45 自然。</p>
+          </div>
+          <div class="slider" data-key="threhold" data-min="-60" data-max="0" data-step="1">
+            <div class="slider-top"><label>噪声门</label><output class="mono">-60 dB</output></div>
+            <input type="range" min="-60" max="0" step="1" value="-55">
+            <p class="tip serif">-60 关闭；-50～-40 可滤掉环境底噪，代价是轻声被切。</p>
+          </div>
+        </div>
+        <div class="inline-row split">
+          <span class="row-label">音高算法</span>
+          <div class="segmented" id="f0-seg" role="group" aria-label="音高算法">
+            <button data-val="rmvpe" class="on">rmvpe</button>
+            <button data-val="fcpe">fcpe</button>
+            <button data-val="pm">pm</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="t-perf">
+        <div class="card-head">
+          <h2 id="t-perf">性能与降噪</h2>
+          <span class="head-note serif">改完需重新开始</span>
+        </div>
+        <div class="sliders" id="sliders-perf">
+          <div class="slider" data-key="block_time" data-min="0.02" data-max="1.5" data-step="0.01">
+            <div class="slider-top"><label>采样长度</label><output class="mono">0.24 s</output></div>
+            <input type="range" min="0.02" max="1.5" step="0.01" value="0.24">
+            <p class="tip serif">越小延迟越低但容易爆音；0.20～0.26 平衡。</p>
+          </div>
+          <div class="slider" data-key="crossfade_length" data-min="0.01" data-max="0.15" data-step="0.01">
+            <div class="slider-top"><label>淡入淡出</label><output class="mono">0.06 s</output></div>
+            <input type="range" min="0.01" max="0.15" step="0.01" value="0.06">
+            <p class="tip serif">块与块之间的平滑长度，太短会有咔哒声。</p>
+          </div>
+          <div class="slider" data-key="extra_time" data-min="0.05" data-max="5" data-step="0.01">
+            <div class="slider-top"><label>额外推理</label><output class="mono">2.20 s</output></div>
+            <input type="range" min="0.05" max="5" step="0.01" value="2.2">
+            <p class="tip serif">给模型更多上下文，音质更好但延迟更高。</p>
+          </div>
+        </div>
+        <div class="inline-row switch-row">
+          <label class="switch"><input type="checkbox" id="denoise-in" checked><span class="track"><span class="knob"></span></span><span class="switch-label">输入降噪</span></label>
+          <label class="switch"><input type="checkbox" id="denoise-out"><span class="track"><span class="knob"></span></span><span class="switch-label">输出降噪</span></label>
+        </div>
+      </section>
+    </div>
+
+    <aside class="column-rail" aria-label="实时控制">
+      <section class="card console-card" id="console">
+        <div class="console-head">
+          <div>
+            <div class="console-title">变声控制</div>
+            <div class="console-sub mono" id="console-sub">待机 · 设备未就绪</div>
+          </div>
+          <span class="state-dot" id="state-dot" data-state="idle" aria-hidden="true"></span>
+        </div>
+
+        <div class="meters" id="meters">
+          <div class="meter">
+            <div class="meter-head"><span>输入</span><output class="mono" id="vu-in-num">-∞</output></div>
+            <div class="meter-track"><span class="meter-fill" id="vu-in"></span><span class="meter-peak" id="vu-in-peak"></span></div>
+          </div>
+          <div class="meter">
+            <div class="meter-head"><span>输出</span><output class="mono" id="vu-out-num">-∞</output></div>
+            <div class="meter-track"><span class="meter-fill" id="vu-out"></span><span class="meter-peak" id="vu-out-peak"></span></div>
+          </div>
+        </div>
+
+        <div class="readouts">
+          <div class="readout"><span class="readout-label mono">延迟</span><span class="readout-value mono" id="st-lat">0</span><span class="readout-unit mono">ms</span></div>
+          <div class="readout"><span class="readout-label mono">推理</span><span class="readout-value mono" id="st-inf">0</span><span class="readout-unit mono">ms</span></div>
+          <div class="readout"><span class="readout-label mono">显存</span><span class="readout-value mono" id="st-vram">0</span><span class="readout-unit mono">MB</span></div>
+        </div>
+
+        <div class="segmented full" id="mode-seg" role="group" aria-label="工作模式">
+          <button data-mode="vc" class="on">变声</button>
+          <button data-mode="im">监听原声</button>
+        </div>
+
+        <button class="primary-btn" id="toggle-btn">
+          <svg class="btn-ico"><use href="#i-play"/></svg>
+          <span id="toggle-label">开始变声</span>
+        </button>
+
+        <p class="console-hint serif" id="ctl-hint">选择模型与设备后开始</p>
+
+        <div class="monitor-block">
+          <div class="monitor-head">
+            <span class="monitor-title">耳机监听</span>
+            <label class="switch">
+              <input type="checkbox" id="monitor-on">
+              <span class="track"><span class="knob"></span></span>
+            </label>
+          </div>
+          <label class="field compact">
+            <span>监听设备</span>
+            <select id="monitor-device"></select>
+          </label>
+          <div class="slider compact" id="monitor-gain-row">
+            <div class="slider-top"><label>音量</label><output class="mono" id="monitor-gain-val">1.00</output></div>
+            <input type="range" id="monitor-gain" min="0" max="1.5" step="0.05" value="1">
+          </div>
+          <p class="tip serif">变声结果同时送一份到耳机，不影响虚拟声卡输出。</p>
+        </div>
+      </section>
+
+      <section class="card log-card" aria-labelledby="t-log">
+        <div class="card-head tight">
+          <h2 id="t-log">运行日志</h2>
+          <button class="text-btn" id="clear-log">清空</button>
+        </div>
+        <div class="log-list" id="log-list"></div>
+      </section>
+
+      <section class="card chain-card" aria-labelledby="t-chain">
+        <div class="card-head tight">
+          <h2 id="t-chain">信号链路</h2>
+        </div>
+        <ol class="chain">
+          <li><span class="chain-node"></span><span class="chain-name">麦克风</span><span class="chain-note">输入</span></li>
+          <li><span class="chain-node"></span><span class="chain-name">RVC 变声</span><span class="chain-note">GPU 推理</span></li>
+          <li><span class="chain-node"></span><span class="chain-name">虚拟声卡</span><span class="chain-note">CABLE / VoiceMeeter</span></li>
+          <li><span class="chain-node"></span><span class="chain-name">QQ · 游戏</span><span class="chain-note">对方听到</span></li>
+        </ol>
+        <p class="hint serif" id="chain-hint">正在检测虚拟声卡…</p>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="page-foot">
+    <span class="mono">RVC 实时变声台 · 本地运行，声音不出本机</span>
+    <span class="foot-links">
+      <a href="https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI" target="_blank" rel="noopener">上游项目</a>
+      <a href="https://github.com/VIOLET50411/rvc-voice-studio" target="_blank" rel="noopener">GitHub</a>
+    </span>
+  </footer>
+</main>
+
+<div class="drawer-mask" id="drawer-mask" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="帮助">
+  <div class="drawer-head">
+    <h2>接线与排错</h2>
+    <button class="icon-btn" id="drawer-close" aria-label="关闭">✕</button>
+  </div>
+  <div class="drawer-body">
+    <h3>一、虚拟声卡</h3>
+    <p>要让别人听到变声，需要 Voicemeeter 或 VB-CABLE。装完重启电脑，设备列表里会出现虚拟设备。</p>
+    <h3>二、路由</h3>
+    <ul>
+      <li>RVC 输出 → <code>CABLE Input</code>（或 Voicemeeter Aux Input）</li>
+      <li>QQ / 游戏麦克风 → <code>CABLE Output</code>（或 Voicemeeter Aux Output）</li>
+      <li>RVC 输入 → 物理麦克风</li>
+    </ul>
+    <h3>三、听自己</h3>
+    <p>右侧「耳机监听」打开即可，不影响他人听到的声音。</p>
+    <h3>四、更自然</h3>
+    <ul>
+      <li>音调 ±12 起步，宁低勿高</li>
+      <li>声线粗细 0～0.2</li>
+      <li>检索占比 0.6～0.75</li>
+      <li>输入降噪打开，采样长度 0.20～0.26</li>
+    </ul>
+    <h3>五、快捷键</h3>
+    <p><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 开始 / 停止，<kbd>Esc</kbd> 关闭面板。</p>
+  </div>
+</aside>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
